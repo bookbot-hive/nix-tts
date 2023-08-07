@@ -670,6 +670,21 @@ class SynthesizerTrn(nn.Module):
             (z, z_p, m_p, logs_p, m_q, logs_q),
         )
 
+    def infer_encoder_teacher_mode(self, y, y_lengths, sid=None):
+        with torch.no_grad():
+            if self.n_speakers > 0:
+                g = self.emb_g(sid).unsqueeze(-1)  # [b, h, 1]
+            else:
+                g = None
+
+            z, m_q, logs_q, _ = self.enc_q(y, y_lengths, g=g)
+        return (z, m_q, logs_q, g)
+
+    def infer_decoder_teacher_mode(self, z_slice, g):
+        with torch.no_grad():
+            y_hat_t = self.dec(z_slice, g=g)
+        return y_hat_t
+
     def infer(
         self,
         x,
