@@ -36,7 +36,7 @@ def synthesizer_train():
 
   # n_gpus = torch.cuda.device_count()
   os.environ['MASTER_ADDR'] = 'localhost'
-  os.environ['MASTER_PORT'] = '80000'
+  os.environ['MASTER_PORT'] = '65535'
 
   hps_dec = utils.get_hparams(True, 'config_dec.json')
   hps_enc = utils.get_hparams_from_file(hps_dec.data.encoder_model_config)
