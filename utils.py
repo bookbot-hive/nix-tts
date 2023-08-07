@@ -158,7 +158,7 @@ def trim(y, frame_length=6000, hop_length=200, top_db=35):
 def load_filepaths_and_text(filename, model_name, split="|"): # only supports for kss
   with open(filename, encoding='utf-8') as f:
     filepaths_and_text = [
-        [f'kss/'+line.strip().split(split)[0], '0', line.strip().split(split)[-2]] 
+        [line.strip().split(split)[0], '0', line.strip().split(split)[1]] 
         for line in f
     ]
   return filepaths_and_text
