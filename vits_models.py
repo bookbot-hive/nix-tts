@@ -33,31 +33,31 @@ class StochasticDurationPredictor(nn.Module):
         self.n_flows = n_flows
         self.gin_channels = gin_channels
 
-        self.log_flow = modules.Log()
+        self.log_flow = vits_modules.Log()
         self.flows = nn.ModuleList()
-        self.flows.append(modules.ElementwiseAffine(2))
+        self.flows.append(vits_modules.ElementwiseAffine(2))
         for i in range(n_flows):
             self.flows.append(
-                modules.ConvFlow(2, filter_channels, kernel_size, n_layers=3)
+                vits_modules.ConvFlow(2, filter_channels, kernel_size, n_layers=3)
             )
-            self.flows.append(modules.Flip())
+            self.flows.append(vits_modules.Flip())
 
         self.post_pre = nn.Conv1d(1, filter_channels, 1)
         self.post_proj = nn.Conv1d(filter_channels, filter_channels, 1)
-        self.post_convs = modules.DDSConv(
+        self.post_convs = vits_modules.DDSConv(
             filter_channels, kernel_size, n_layers=3, p_dropout=p_dropout
         )
         self.post_flows = nn.ModuleList()
-        self.post_flows.append(modules.ElementwiseAffine(2))
+        self.post_flows.append(vits_modules.ElementwiseAffine(2))
         for i in range(4):
             self.post_flows.append(
-                modules.ConvFlow(2, filter_channels, kernel_size, n_layers=3)
+                vits_modules.ConvFlow(2, filter_channels, kernel_size, n_layers=3)
             )
-            self.post_flows.append(modules.Flip())
+            self.post_flows.append(vits_modules.Flip())
 
         self.pre = nn.Conv1d(in_channels, filter_channels, 1)
         self.proj = nn.Conv1d(filter_channels, filter_channels, 1)
-        self.convs = modules.DDSConv(
+        self.convs = vits_modules.DDSConv(
             filter_channels, kernel_size, n_layers=3, p_dropout=p_dropout
         )
         if gin_channels != 0:
@@ -141,11 +141,11 @@ class DurationPredictor(nn.Module):
         self.conv_1 = nn.Conv1d(
             in_channels, filter_channels, kernel_size, padding=kernel_size // 2
         )
-        self.norm_1 = modules.LayerNorm(filter_channels)
+        self.norm_1 = vits_modules.LayerNorm(filter_channels)
         self.conv_2 = nn.Conv1d(
             filter_channels, filter_channels, kernel_size, padding=kernel_size // 2
         )
-        self.norm_2 = modules.LayerNorm(filter_channels)
+        self.norm_2 = vits_modules.LayerNorm(filter_channels)
         self.proj = nn.Conv1d(filter_channels, 1, 1)
 
         if gin_channels != 0:
@@ -235,7 +235,7 @@ class ResidualCouplingBlock(nn.Module):
         self.flows = nn.ModuleList()
         for i in range(n_flows):
             self.flows.append(
-                modules.ResidualCouplingLayer(
+                vits_modules.ResidualCouplingLayer(
                     channels,
                     hidden_channels,
                     kernel_size,
@@ -245,7 +245,7 @@ class ResidualCouplingBlock(nn.Module):
                     mean_only=True,
                 )
             )
-            self.flows.append(modules.Flip())
+            self.flows.append(vits_modules.Flip())
 
     def forward(self, x, x_mask, g=None, reverse=False):
         if not reverse:
@@ -278,7 +278,7 @@ class PosteriorEncoder(nn.Module):
         self.gin_channels = gin_channels
 
         self.pre = nn.Conv1d(in_channels, hidden_channels, 1)
-        self.enc = modules.WN(
+        self.enc = vits_modules.WN(
             hidden_channels,
             kernel_size,
             dilation_rate,
@@ -317,7 +317,7 @@ class Generator(torch.nn.Module):
         self.conv_pre = Conv1d(
             initial_channel, upsample_initial_channel, 7, 1, padding=3
         )
-        resblock = modules.ResBlock1 if resblock == "1" else modules.ResBlock2
+        resblock = vits_modules.ResBlock1 if resblock == "1" else vits_modules.ResBlock2
 
         self.ups = nn.ModuleList()
         for i, (u, k) in enumerate(zip(upsample_rates, upsample_kernel_sizes)):
@@ -353,7 +353,7 @@ class Generator(torch.nn.Module):
             x = x + self.cond(g)
 
         for i in range(self.num_upsamples):
-            x = F.leaky_relu(x, modules.LRELU_SLOPE)
+            x = F.leaky_relu(x, vits_modules.LRELU_SLOPE)
             x = self.ups[i](x)
             xs = None
             for j in range(self.num_kernels):
@@ -446,7 +446,7 @@ class DiscriminatorP(torch.nn.Module):
 
         for l in self.convs:
             x = l(x)
-            x = F.leaky_relu(x, modules.LRELU_SLOPE)
+            x = F.leaky_relu(x, vits_modules.LRELU_SLOPE)
             fmap.append(x)
         x = self.conv_post(x)
         fmap.append(x)
@@ -476,7 +476,7 @@ class DiscriminatorS(torch.nn.Module):
 
         for l in self.convs:
             x = l(x)
-            x = F.leaky_relu(x, modules.LRELU_SLOPE)
+            x = F.leaky_relu(x, vits_modules.LRELU_SLOPE)
             fmap.append(x)
         x = self.conv_post(x)
         fmap.append(x)
