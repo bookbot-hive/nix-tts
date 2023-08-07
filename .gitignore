@@ -52,3 +52,10 @@ Thumbs.db
 .ipynb_checkpoints/
 __pycache__/
 logs/
+
+build
+*.c
+monotonic_align/monotonic_align
+id-ID-Althaf/
+.DS_Store
+*.onnx
