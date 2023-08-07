@@ -129,7 +129,8 @@ def run(rank, n_gpus, hps, hps_teacher):
     net_enc = DDP(net_enc, device_ids=[rank], find_unused_parameters=True)
 
     ## version 1
-    net_enc.module.emb_g = net_teacher.module.emb_g
+    if hps.data.n_speakers > 0:
+        net_enc.module.emb_g = net_teacher.module.emb_g
 
     try:
         _, _, _, epoch_str = utils.load_checkpoint(
